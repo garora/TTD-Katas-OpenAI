@@ -42,7 +42,7 @@ For each small step:
 
 Start from deterministic components—validation, policy, tool functions, and session storage—then add the model adapter and finally optional live evaluations.
 
-## Recommended repository structure
+## Repository structure
 
 ```text
 TDD-Katas-OpenAI/
@@ -138,19 +138,3 @@ Run these only with an authorized API key and a deliberate command. Use a small,
 5. **Test invariants, not prose.** Assert schema, evidence, safety constraints, and tool events rather than an exact sentence.
 6. **Separate offline and live testing.** The default test suite must be fast, inexpensive, repeatable, and credential-free.
 7. **Add a regression fixture for every defect.** A production failure becomes a local test case and, when relevant, an evaluation example.
-
-## Definition of done for a kata
-
-A kata is complete when:
-
-- [ ] A new behavior began with a failing test.
-- [ ] The behavior is testable without a live API call where possible.
-- [ ] Inputs and structured outputs are validated.
-- [ ] The test asserts stable contracts instead of exact generated prose.
-- [ ] Errors, retries, and safety boundaries are explicit.
-- [ ] A regression fixture/evaluation case represents the new behavior.
-- [ ] Optional live tests are clearly separated from the default test command.
-
-## Suggested first kata
-
-Start with **03 — Supplier Quote Tool**. It is entirely deterministic and establishes a realistic tool that later katas can use for tool selection, orchestration, evidence, and multi-agent delegation.

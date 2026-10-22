@@ -1,1 +1,156 @@
-"# TTD-Katas-OpenAI" 
+# TDD Katas for OpenAI
+
+A progressive set of **test-driven development (TDD) exercises for AI applications**. These katas use the familiar **red → green → refactor** loop while teaching the additional engineering practices needed for OpenAI-powered systems: structured output, tool calling, stateful sessions, evaluation datasets, grounding, and safety.
+
+> **Core rule:** Test observable contracts—not the exact wording of an LLM response.
+
+## Why AI TDD is different
+
+Traditional kata tests normally assert one deterministic return value. Model output can vary even when the application behaves correctly, so these katas focus on stable invariants:
+
+- The expected tool is called with validated arguments.
+- Structured output conforms to a schema.
+- Business rules are decided in deterministic code.
+- Answers only claim facts supported by supplied evidence.
+- Unsafe or malformed requests fail safely.
+- Agent/session orchestration preserves the intended state and boundaries.
+
+## Learning path
+
+| # | Kata | Main skill | Suggested contract to test |
+| --- | --- | --- | --- |
+| 01 | Prompt Builder | Prompt composition and instruction boundaries | Required instructions are present; untrusted content cannot replace system policy. |
+| 02 | Structured Output | Schema-first model integration | Valid output parses; invalid or incomplete output is rejected or repaired. |
+| 03 | Supplier Quote Tool | Deterministic function tools | Inputs validate; quote totals, lead time, and provenance are correct. |
+| 04 | Tool Selection | Choosing a tool vs. clarifying | Complete quote requests create a quote tool call; ambiguous requests ask a question. |
+| 05 | Tool Loop | Agent orchestration | Tool results return to the model; limits prevent loops; unknown calls fail safely. |
+| 06 | Budget Policy | Deterministic decision logic | Quotes over budget or deadline are rejected without an LLM deciding policy. |
+| 07 | Session State | Conversation/session lifecycle | Follow-up turns reuse one session; fresh chats create distinct sessions. |
+| 08 | Prompt Injection | Untrusted-data handling | Retrieved/tool text cannot alter permissions, policy, or reveal secrets. |
+| 09 | Evidence & Citations | Grounded responses | Price/deadline claims map to tool or retrieval evidence. |
+| 10 | Multi-Agent Delegation | Handoffs and aggregation | Children receive the necessary facts; parent records failed/deferred work honestly. |
+| 11 | Evaluation Dataset | Regression protection | Fixtures exercise tools, schemas, grounding, safety, latency, and cost thresholds. |
+
+## The TDD loop
+
+For each small step:
+
+1. **Red** — Write one failing test that expresses a single behavior.
+2. **Green** — Write only enough production code to make it pass.
+3. **Refactor** — Improve names, duplication, and boundaries while tests remain green.
+4. **Regress** — Preserve the new case in an offline fixture or evaluation dataset.
+
+Start from deterministic components—validation, policy, tool functions, and session storage—then add the model adapter and finally optional live evaluations.
+
+## Recommended repository structure
+
+```text
+TDD-Katas-OpenAI/
+├── README.md                         # Curriculum, setup, and kata index
+├── docs/
+│   ├── architecture.md                # Boundaries: model, tools, policy, storage
+│   ├── testing-strategy.md            # Offline, contract, and live-eval guidance
+│   └── kata-authoring-guide.md        # Standard for adding a new kata
+├── katas/
+│   ├── 01-prompt-builder/
+│   │   ├── README.md                  # Problem statement and progressive steps
+│   │   ├── starter.py                 # Deliberately incomplete learner code
+│   │   ├── solution.py                # Reference solution (optional/revealed later)
+│   │   └── test_kata.py               # Tests that drive this exercise
+│   ├── 02-structured-output/
+│   ├── 03-supplier-quote-tool/
+│   ├── 04-tool-selection/
+│   ├── 05-tool-loop/
+│   ├── 06-budget-policy/
+│   ├── 07-session-state/
+│   ├── 08-prompt-injection/
+│   ├── 09-evidence-citations/
+│   ├── 10-multi-agent-delegation/
+│   └── 11-evaluation-dataset/
+├── src/
+│   └── openai_tdd_katas/
+│       ├── __init__.py
+│       ├── contracts.py               # Pydantic/domain models and typed results
+│       ├── model_client.py            # Narrow model-client adapter/protocol
+│       ├── orchestration.py           # Tool-loop/session orchestration
+│       ├── policy.py                  # Deterministic business and safety rules
+│       └── tools.py                   # Validated, deterministic local tools
+├── tests/
+│   ├── unit/                          # Fast tests with no model/network calls
+│   ├── contract/                      # Schema, adapter, and tool-call contracts
+│   ├── integration/                   # Local orchestration with fake model events
+│   ├── live/                          # Opt-in API tests; never default CI
+│   └── fixtures/
+│       ├── model-events/              # Recorded/synthetic model response events
+│       ├── tool-results/              # Deterministic tool-result fixtures
+│       └── adversarial-prompts/       # Injection, malformed, and edge-case data
+├── evals/
+│   ├── datasets/                      # JSONL/YAML examples and expected invariants
+│   ├── graders/                       # Deterministic and rubric-based graders
+│   └── reports/                       # Ignored/generated evaluation artifacts
+├── scripts/
+│   ├── run_kata.py                    # Run a selected kata locally
+│   └── run_evals.py                   # Explicit opt-in evaluation runner
+├── .env.example                       # Variables only; never a real API key
+├── .gitignore
+├── pyproject.toml                     # Dependencies, pytest, lint configuration
+└── LICENSE
+```
+
+## Testing layers
+
+### 1. Unit tests — always run
+
+No network, no API key, no real model. Test pure policy, validation, transformation, and tool implementation.
+
+```python
+def test_quote_rejects_non_positive_quantity():
+    with pytest.raises(ValueError):
+        get_supplier_quote(sku="workshop-13", quantity=0)
+```
+
+### 2. Contract/integration tests — use fakes
+
+Use a fake model client that returns recorded response events. Assert the orchestration contract: selected tools, supplied arguments, schema parsing, tool-result handoff, maximum iteration count, and terminal state.
+
+```python
+def test_quote_request_invokes_quote_tool(agent, fake_model):
+    fake_model.return_tool_call(
+        name="get_supplier_quote",
+        arguments={"sku": "workshop-13", "quantity": 25},
+    )
+
+    result = agent.run("Quote 25 workshop-13 laptops.")
+
+    assert result.tool_calls[0].name == "get_supplier_quote"
+```
+
+### 3. Live evaluation tests — explicit and limited
+
+Run these only with an authorized API key and a deliberate command. Use a small, versioned dataset and measure schema validity, tool-call correctness, evidence coverage, latency, and cost. Do not make ordinary CI depend on a live model response.
+
+## Design rules
+
+1. **Keep policy in code.** Budget limits, permissions, and authorization should be deterministic.
+2. **Validate every boundary.** Validate user input, tool input, tool output, and model-produced structured data.
+3. **Make tools small and observable.** Each tool should have narrow inputs, typed outputs, clear errors, and a unit-test suite.
+4. **Treat external text as data.** Tool results, retrieval chunks, and documents are untrusted content—not instructions.
+5. **Test invariants, not prose.** Assert schema, evidence, safety constraints, and tool events rather than an exact sentence.
+6. **Separate offline and live testing.** The default test suite must be fast, inexpensive, repeatable, and credential-free.
+7. **Add a regression fixture for every defect.** A production failure becomes a local test case and, when relevant, an evaluation example.
+
+## Definition of done for a kata
+
+A kata is complete when:
+
+- [ ] A new behavior began with a failing test.
+- [ ] The behavior is testable without a live API call where possible.
+- [ ] Inputs and structured outputs are validated.
+- [ ] The test asserts stable contracts instead of exact generated prose.
+- [ ] Errors, retries, and safety boundaries are explicit.
+- [ ] A regression fixture/evaluation case represents the new behavior.
+- [ ] Optional live tests are clearly separated from the default test command.
+
+## Suggested first kata
+
+Start with **03 — Supplier Quote Tool**. It is entirely deterministic and establishes a realistic tool that later katas can use for tool selection, orchestration, evidence, and multi-agent delegation.

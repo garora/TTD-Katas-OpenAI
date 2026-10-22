@@ -97,6 +97,13 @@ TDD-Katas-OpenAI/
 └── LICENSE
 ```
 
+## Documentation
+
+The repository documentation describes the boundaries and conventions used by every kata:
+
+- [Architecture](docs/architecture.md) — model, tools, policy, sessions/storage, evidence, and trust boundaries.
+- [Testing strategy](docs/testing-strategy.md) — offline unit/contract/integration tests, datasets, and opt-in live evaluations.
+- [Kata authoring guide](docs/kata-authoring-guide.md) — the standard for adding a progressive exercise.
 ## Testing layers
 
 ### 1. Unit tests — always run

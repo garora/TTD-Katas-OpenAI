@@ -134,6 +134,14 @@ Use a fake when testing logic your application owns: parsing, validation, tool d
 
 Use an optional live evaluation only when the learning objective is specifically real model/configuration behavior. It must be separately invoked, credential-gated, cost-bounded, and paired with a stable offline evaluator wherever possible.
 
+## Keep the shared Kata Studio current
+
+When completing a kata, update its entry in `studio/katas.json` with accurate descriptions, conceptual stages, and the exact function names to observe. Availability is derived from the kata's README, starter, solution, and test files. Do not hardcode planned katas as passing.
+
+Keep tests compatible with `KATA_MODULE=starter|solution|working`, and run each kata in its own process. Verify a passing reference run, the intended failing starter, and truthful observed-stage badges. Missing instrumentation must be shown as unobserved, not simulated. Update the root README's availability summary and add regression coverage for any new event behavior.
+
+Run `python -B scripts/run_tests.py` before pushing. See [the Studio guide](kata-studio.md) for the complete registration and replay contract.
+
 ## Author checklist
 
 Before opening a pull request or marking an issue complete:
@@ -145,6 +153,8 @@ Before opening a pull request or marking an issue complete:
 - [ ] Tests progress in small red-green-refactor steps.
 - [ ] The starter is incomplete and does not reveal the solution.
 - [ ] The reference solution passes all tests.
+- [ ] Studio registry/stage mappings and root README availability are current.
+- [ ] Reference, starter, and (where used) working-copy runs render truthfully in Studio.
 - [ ] The kata includes malformed/adversarial cases where it crosses a trust boundary.
 - [ ] Exact LLM prose is not used as the main assertion.
 - [ ] The README includes the exact local test command.

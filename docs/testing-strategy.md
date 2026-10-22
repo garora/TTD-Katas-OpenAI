@@ -192,4 +192,10 @@ python -m unittest discover -s katas/02-structured-output -p "test_*.py" -v
 python -m unittest discover -s katas/03-supplier-quote-tool -p "test_*.py" -v
 ```
 
-Future repository-wide tooling may provide a single test command, but it must preserve the default offline guarantee.
+The repository-wide offline command is now `python -B scripts/run_tests.py`, as described below.
+
+## Shared Studio regression entry point
+
+Run `python -B scripts/run_tests.py` from the repository root for all current offline checks. It runs package tests, Studio HTTP/subprocess tests, and every available kata reference suite in separate interpreters. This avoids collisions between the kata-local `solution` and `test_kata` modules.
+
+Studio streams actual `unittest` lifecycle events and selected function-call traces. Replay is a read-only reconstruction from saved JSONL events, not another test execution. Test trace capture, replay, overlap rejection, timeout behavior, origin restrictions, and future registry changes alongside new kata behavior. See [Kata Studio](kata-studio.md).

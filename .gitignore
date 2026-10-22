@@ -1,0 +1,11 @@
+# Local runtime, learner work, and generated reports
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+.studio-state/
+katas/*/working.py
+evals/reports/*
+!evals/reports/.gitkeep

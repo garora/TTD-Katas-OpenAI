@@ -21,3 +21,10 @@
 - Preserve the fixed target allow-list, Host/Origin checks, bounded subprocesses, reduced worker environment, and replay-without-execution behavior.
 - Do not capture argument values, return values, local variables, credentials, or customer data in trace events.
 - See `docs/kata-studio.md` for startup, storage, extension, event semantics, and limitations.
+
+## Audio and multilingual kata work
+
+- Default audio/multilingual kata tests must use synthetic or consented fixture metadata/transcripts only; never require a microphone, speaker, network, or API key.
+- Do not commit real recordings, voice biometrics, unredacted transcripts, or audio bytes containing personal data.
+- Use versioned BCP 47-style tags and representative language/script matrices; do not hard-code a provider-language count.
+- Clearly label any future opt-in live audio evaluation and keep it out of `scripts/run_tests.py`.

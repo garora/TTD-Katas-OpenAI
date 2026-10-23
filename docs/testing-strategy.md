@@ -199,3 +199,7 @@ The repository-wide offline command is now `python -B scripts/run_tests.py`, as 
 Run `python -B scripts/run_tests.py` from the repository root for all current offline checks. It runs package tests, Studio HTTP/subprocess tests, and every available kata reference suite in separate interpreters. This avoids collisions between the kata-local `solution` and `test_kata` modules.
 
 Studio streams actual `unittest` lifecycle events and selected function-call traces. Replay is a read-only reconstruction from saved JSONL events, not another test execution. Test trace capture, replay, overlap rejection, timeout behavior, origin restrictions, and future registry changes alongside new kata behavior. See [Kata Studio](kata-studio.md).
+
+## Audio and multilingual fixture evaluations
+
+Audio and multilingual kata tests default to synthetic audio metadata, synthetic transcript fixtures, and versioned language-matrix records. Grade request metadata, BCP 47-style locale tags, segment structure, normalized required terms, numeric preservation, script expectation, provenance, and latency budgets deterministically. Do not make a microphone, speaker, recording, provider call, or API key part of default CI. Real audio/provider evaluations must be separately invoked with consented/synthetic material, fixed configuration, small budgets, redacted reports, and explicit cost/latency limits.

@@ -192,3 +192,7 @@ python -m unittest discover -s katas/NN-short-name -p "test_*.py" -v
 ````
 
 Use this skeleton as a starting point, then add examples and safety/error details relevant to the kata.
+
+## Audio and multilingual additions
+
+For audio or multilingual katas, add only synthetic or consented fixtures. Document locale/tag validation, supported fixture metadata, script/entity/number invariants, privacy boundaries, and whether a result is a fixture contract or an opt-in live-provider evaluation. Never commit real user recordings, biometric voice data, secrets, or unredacted transcript content. Do not represent a representative language matrix as a permanent product-language count.

@@ -177,3 +177,7 @@ scripts/run_tests.py  # Offline regression entry point
 | Working copy missing from selector | Create `working.py` beside the kata starter and reopen the workspace after refresh. |
 | Run is interrupted/timed out | Inspect its saved events and fix the cause before explicitly starting a new run. Studio never silently retries. |
 | Stream disconnected | Leave the server running and reopen Run history. Event IDs permit resuming; do not repeatedly click Run. |
+
+## Audio and multilingual workspaces
+
+Katas 12–15 use the same Studio event stream and evaluation charts as every other kata. Their default runs operate on synthetic metadata/transcript fixtures, so the chart represents fixture-test outcomes and timings—not live speech recognition, synthesis quality, or voice playback. Studio does not record microphone input or audio bytes. Optional live audio runs, if ever added, must be visibly distinguished from fixture runs and must not replace deterministic regression coverage.

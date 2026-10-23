@@ -8,7 +8,7 @@ function button(text, className, action) {const node = el("button", className, t
 function pill(text, status = "") {return el("span", `pill ${status}`, text);}
 function toast(message) {$("#toast").textContent = message; $("#toast").hidden = false; setTimeout(() => {$("#toast").hidden = true;}, 6500);}
 async function api(path, options) {const response = await fetch(path, options); const data = await response.json(); if (!response.ok) throw Error(data.error || "Request failed"); return data;}
-async function refresh() {const [catalog, history] = await Promise.all([api("/api/katas"), api("/api/runs")]); state.katas = catalog.katas; state.runs = history.runs; state.active = history.active_run;}
+async function refresh() {const [catalog, history] = await Promise.all([api("/api/katas"), api("/api/runs")]); state.katas = catalog.katas; state.runs = history.runs; state.active = history.active_run; $("#kata-total").textContent = String(state.katas.length); $("#path-range").textContent = `01 — ${String(state.katas.length).padStart(2, "0")}`;}
 function cleanup() {if (state.source) state.source.close(); state.source = null; pause(); clearTimeout(paintTimer); state.selected = null;}
 function updateRunDock() {
   const label = $("#dock-target");

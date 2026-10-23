@@ -4,6 +4,7 @@ import json
 from collections.abc import Mapping,Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from .audio_grading import contains_script, language_tag_is_valid, normalize_text, numbers_in_text
 @dataclass(frozen=True)
 class EvaluationCase: case_id:str;category:str;input_text:str;expected:Mapping[str,object]
 @dataclass(frozen=True)
@@ -53,6 +54,16 @@ def grade_case(case:EvaluationCase,actual:Mapping[str,object]|None)->EvaluationO
   if any(term.lower() in text for term in expected['forbidden_terms']):issues.append('forbidden term detected.')
  if 'requires_clarification' in expected and actual.get('requires_clarification') is not expected['requires_clarification']:issues.append('requires_clarification did not match.')
  if 'max_tool_steps' in expected and (not isinstance(actual.get('tool_steps'),int) or actual['tool_steps']>expected['max_tool_steps']):issues.append('tool_steps exceeded limit.')
+ if 'language_tag' in expected and (actual.get('language_tag') != expected['language_tag'] or not language_tag_is_valid(str(actual.get('language_tag','')))) :issues.append('language_tag did not match.')
+ if 'required_terms' in expected:
+  normalized=normalize_text(str(actual.get('text','')))
+  if any(normalize_text(term) not in normalized for term in expected['required_terms']):issues.append('required terms were missing.')
+ if 'required_numbers' in expected and not set(expected['required_numbers']).issubset(set(numbers_in_text(str(actual.get('text',''))))):issues.append('required numbers were missing.')
+ if 'script' in expected and not contains_script(str(actual.get('text','')),expected['script']):issues.append('script expectation missing.')
+ if 'audio_metadata' in expected:
+  metadata=actual.get('audio_metadata',{})
+  if not isinstance(metadata,Mapping) or any(metadata.get(key)!=value for key,value in expected['audio_metadata'].items()):issues.append('audio metadata did not match.')
+ if 'roundtrip_normalized' in expected and normalize_text(str(actual.get('transcript',''))) != normalize_text(str(expected['roundtrip_normalized'])):issues.append('round-trip normalized text did not match.')
  return EvaluationOutcome(case.case_id,case.category,not issues,tuple(issues))
 def run_evaluations(cases:Sequence[EvaluationCase],actual_results:Mapping[str,Mapping[str,object]])->EvaluationReport:return EvaluationReport(tuple(grade_case(case,actual_results.get(case.case_id)) for case in cases))
 if __name__=='__main__':

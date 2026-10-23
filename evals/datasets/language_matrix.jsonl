@@ -1,0 +1,5 @@
+{"id":"en-order","locale":"en-US","script":"latin","required_terms":["workshop"],"required_numbers":["25"],"task":"stt_contract"}
+{"id":"hi-order","locale":"hi-IN","script":"devanagari","required_terms":["लैपटॉप"],"required_numbers":["25"],"task":"stt_contract"}
+{"id":"ja-order","locale":"ja-JP","script":"han","required_terms":["台"],"required_numbers":["25"],"task":"stt_contract"}
+{"id":"ar-order","locale":"ar","script":"arabic","required_terms":["حاسوب"],"required_numbers":["25"],"task":"stt_contract"}
+{"id":"fr-order","locale":"fr-FR","script":"latin","required_terms":["ordinateur"],"required_numbers":["25"],"task":"tts_contract"}

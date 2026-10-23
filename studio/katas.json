@@ -331,5 +331,93 @@
         "functions": []
       }
     ]
+  },
+  {
+    "id": "12-stt-contracts",
+    "title": "STT Contracts",
+    "tagline": "Fixture-first transcription contracts.",
+    "description": "Validate synthetic audio metadata, language hints, and transcript segments offline.",
+    "stages": [
+      {
+        "id": "input",
+        "label": "Validate fixture audio metadata",
+        "functions": [
+          "_audio"
+        ]
+      },
+      {
+        "id": "transcript",
+        "label": "Normalize transcript",
+        "functions": [
+          "normalize_transcription"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "13-tts-contracts",
+    "title": "TTS Contracts",
+    "tagline": "Synthesized output without synthesis.",
+    "description": "Validate text-to-speech requests and synthetic output metadata offline.",
+    "stages": [
+      {
+        "id": "request",
+        "label": "Validate TTS request",
+        "functions": [
+          "_request"
+        ]
+      },
+      {
+        "id": "output",
+        "label": "Validate synthetic output metadata",
+        "functions": [
+          "validate_tts_fixture"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "14-audio-round-trip",
+    "title": "Audio Round Trip",
+    "tagline": "Evaluate speech round trips offline.",
+    "description": "Grade normalized text, entities, numbers, locale, and latency from fixtures.",
+    "stages": [
+      {
+        "id": "fixture",
+        "label": "Normalize fixture transcript",
+        "functions": [
+          "grade_round_trip"
+        ]
+      },
+      {
+        "id": "grade",
+        "label": "Grade entities and latency",
+        "functions": [
+          "numbers_in_text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "15-multilingual-matrix",
+    "title": "Multilingual Matrix",
+    "tagline": "Versioned language invariants.",
+    "description": "Grade locale, script, terms, and numeric preservation across representative fixtures.",
+    "stages": [
+      {
+        "id": "matrix",
+        "label": "Load versioned language matrix",
+        "functions": [
+          "load_language_matrix"
+        ]
+      },
+      {
+        "id": "grade",
+        "label": "Grade locale/script/entities",
+        "functions": [
+          "grade_language_case"
+        ]
+      }
+    ]
   }
 ]

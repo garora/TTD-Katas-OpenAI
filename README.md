@@ -6,7 +6,7 @@ A progressive set of **test-driven development (TDD) exercises for AI applicatio
 
 ## TDD Kata Studio — visualize the tests
 
-A shared local dashboard is now available, with an individual visual workspace for every kata. **All 11 katas are implemented and runnable in the shared Studio.** Availability is separate from test status; planned exercises are never shown as passing.
+A shared local dashboard is now available, with an individual visual workspace for every kata. **All 15 katas are implemented and runnable in the shared Studio.** Availability is separate from test status; planned exercises are never shown as passing.
 
 ### Start the dashboard
 
@@ -47,7 +47,7 @@ On macOS/Linux, use `cp` instead of `Copy-Item`. Refresh the page and reopen the
 python -B scripts/run_tests.py
 ```
 
-This runs package, Studio, and all 11 reference-kata suites in separate interpreters, preventing collisions between same-named kata modules. Studio tests also verify real failing starter runs, timeouts, replay persistence, live event delivery, and request restrictions. They make loopback HTTP requests only—not OpenAI calls.
+This runs package, Studio, and all 15 reference-kata suites in separate interpreters, preventing collisions between same-named kata modules. Studio tests also verify real failing starter runs, timeouts, replay persistence, live event delivery, and request restrictions. They make loopback HTTP requests only—not OpenAI calls.
 
 ### Local data and safety
 
@@ -62,6 +62,10 @@ This runs package, Studio, and all 11 reference-kata suites in separate interpre
 `studio/katas.json` is the shared curriculum/visual-stage registry. A registered kata becomes runnable when its README, tests, starter, and solution exist. Whenever completing another kata, update its stage/function mapping, verify its reference and starter runs in Studio, run the offline suite, and update the documented availability. This is a contributor convention, not an unattended background automation.
 
 See **[the full Studio guide](docs/kata-studio.md)** for storage, event semantics, implementation details, extension steps, and troubleshooting.
+
+## Audio and multilingual kata conventions
+
+Katas 12–15 add speech-to-text contracts, text-to-speech contracts, fixture-based audio round trips, and a multilingual language matrix. Default tests use **synthetic metadata and transcript fixtures only**: no microphone, speaker, real recording, API key, or network request is required. The language matrix uses versioned BCP 47-style tags and representative scripts; it is not a claim of a fixed provider-language count. Any future live audio evaluation must be explicitly invoked, consented, bounded, configuration-recorded, and separate from the default offline suite.
 
 ## Why AI TDD is different
 

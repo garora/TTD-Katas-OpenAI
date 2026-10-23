@@ -177,3 +177,7 @@ This architecture reduces risk; it does not make an LLM infallible. Defense in d
 The `studio/` package wraps kata tests; it does not replace their domain code or add provider calls. A loopback-only HTTP server starts a registered kata in a fresh Python process, captures `unittest` and selected function events, persists a JSONL log, and delivers the same events to a static browser UI over SSE. The browser reconstructs replay from the recorded events without executing code.
 
 The curriculum/visual-stage registry is `studio/katas.json`. The diagrams are conceptual; observed badges come only from trace events. Workers have a reduced environment, audit-hook restrictions, timeouts, and no API dependency. This is defense in depth for trusted code—not a sandbox for arbitrary Python. See [the Studio guide](kata-studio.md) for the operating limits and privacy model.
+
+## Audio and multilingual boundaries
+
+Audio request metadata, fixture transcripts, generated-output metadata, locale tags, and round-trip grades cross the same trust boundaries as other model inputs/outputs. Keep recordings and secrets outside prompt/tool context; persist only minimal synthetic metadata and redacted diagnostic facts. A language matrix is a versioned test dataset, not authorization to claim universal quality/support. Fixture graders may verify tags, scripts, terms, numbers, timing, and output metadata deterministically; live audio quality requires explicit, separate evaluation.

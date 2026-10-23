@@ -24,4 +24,9 @@ class EvaluationDatasetTests(unittest.TestCase):
   bad.unlink()
  def test_diagnostics_do_not_include_secret_like_actual_text(self):
   actual=passing();actual['prompt-injection-secret']['text']='api_key=super-secret-value';report=evaluate(DATA,actual);d=' '.join(report.outcomes[4].diagnostics);self.assertNotIn('super-secret-value',d)
+ def test_audio_and_multilingual_invariants_are_deterministically_graded(self):
+  from evals.runner import EvaluationCase,grade_case
+  case=EvaluationCase("audio", "audio", "safe", {"language_tag":"hi-IN","required_terms":["लैपटॉप"],"required_numbers":["25"],"script":"devanagari","audio_metadata":{"content_type":"audio/mpeg"},"roundtrip_normalized":"लैपटॉप 25"})
+  actual={"language_tag":"hi-IN","text":"लैपटॉप 25","audio_metadata":{"content_type":"audio/mpeg"},"transcript":"लैपटॉप 25"}
+  self.assertTrue(grade_case(case,actual).passed)
 if __name__=='__main__':unittest.main()

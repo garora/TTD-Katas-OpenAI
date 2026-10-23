@@ -48,11 +48,23 @@ class StudioTests(unittest.TestCase):
     def test_registry_availability_matches_published_deliverables(self):
         katas = load_katas()
         self.assertEqual(len(katas), 11)
-        self.assertTrue(all(k['available'] for k in katas[:3]))
+        self.assertTrue(all(k['available'] for k in katas), 'All eleven curriculum katas should currently be runnable')
         for kata in katas:
             folder = ROOT/'katas'/kata['id']
             expected = all((folder/name).is_file() for name in ('README.md','starter.py','solution.py','test_kata.py'))
             self.assertEqual(kata['available'],expected)
+            if expected:
+                self.assertIn('solution',kata['targets'])
+                self.assertIn('starter',kata['targets'])
+
+    def test_dashboard_api_publishes_all_eleven_as_runnable(self):
+        server = self.server()
+        status, payload = self.request(server, 'GET', '/api/katas')
+        self.assertEqual(status, 200)
+        katas = json.loads(payload)['katas']
+        self.assertEqual(len(katas), 11)
+        self.assertTrue(all(kata['available'] for kata in katas))
+        self.assertTrue(all({'solution', 'starter'}.issubset(kata['targets']) for kata in katas))
 
     def test_unknown_planned_and_path_targets_are_rejected(self):
         for kata, target in [('../outside','solution'),

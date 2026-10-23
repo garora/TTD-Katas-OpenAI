@@ -161,18 +161,27 @@
     "stages": [
       {
         "id": "quote",
-        "label": "Validated quote",
-        "functions": []
+        "label": "Validate quote facts",
+        "functions": [
+          "_non_blank_text",
+          "_non_negative_integer",
+          "_positive_integer",
+          "total_usd"
+        ]
       },
       {
         "id": "policy",
         "label": "Check constraints",
-        "functions": []
+        "functions": [
+          "evaluate_quote"
+        ]
       },
       {
         "id": "decision",
-        "label": "Decision + reasons",
-        "functions": []
+        "label": "Build decision + reasons",
+        "functions": [
+          "_reason"
+        ]
       }
     ]
   },

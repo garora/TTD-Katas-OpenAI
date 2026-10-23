@@ -28,7 +28,7 @@ The registry (`studio/katas.json`) contains the curriculum descriptions, concept
 
 1. Open an available kata from its card or the left navigation.
 2. Choose **Reference solution** or **Starter (exercise)**.
-3. Select **Run tests**. Real tests execute immediately in a fresh Python process.
+3. Select **Run tests**. A sticky workspace action remains available while scrolling. Real tests execute immediately in a fresh Python process.
 4. The **Test explorer** lists every statically discovered `test_*` method before execution, then replaces each neutral marker with its actual outcome, including assertion failures, errors, skips, and failing subtests.
 5. The **Execution map** shows conceptual stages and badges for observed function calls.
 6. Select a test or an event in the **Event timeline** to inspect the outcome, source file/line, function name, return type, or failure details.

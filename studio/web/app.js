@@ -10,6 +10,10 @@ function toast(message) {$("#toast").textContent = message; $("#toast").hidden =
 async function api(path, options) {const response = await fetch(path, options); const data = await response.json(); if (!response.ok) throw Error(data.error || "Request failed"); return data;}
 async function refresh() {const [catalog, history] = await Promise.all([api("/api/katas"), api("/api/runs")]); state.katas = catalog.katas; state.runs = history.runs; state.active = history.active_run;}
 function cleanup() {if (state.source) state.source.close(); state.source = null; pause(); clearTimeout(paintTimer); state.selected = null;}
+function updateRunDock() {
+  const label = $("#dock-target");
+  if (label && state.kata) label.textContent = `Selected target · ${state.target === "starter" ? "Starter exercise" : state.target === "working" ? "Working copy" : "Reference solution"}`;
+}
 function nav() {
   $("#kata-nav").replaceChildren(...state.katas.map((kata, index) => {
     const item = button("", `kata-link ${state.kata?.id === kata.id ? "active" : ""}`, () => openKata(kata.id));
@@ -61,7 +65,7 @@ async function openKata(id, runId = null) {
   const controls = el("div", "controls"), label = el("label", "", "Target"); label.htmlFor = "target";
   const target = el("select"); target.id = "target"; target.setAttribute("aria-label", "Implementation target");
   (state.kata.targets.length ? state.kata.targets : ["solution"]).forEach(value => {const option = el("option", "", value === "working" ? "Working copy" : value === "starter" ? "Starter (exercise)" : "Reference solution"); option.value = value; target.append(option);}); target.value = state.target;
-  target.addEventListener("change", () => {state.target = target.value;}); target.disabled = !state.kata.available;
+  target.addEventListener("change", () => {state.target = target.value; updateRunDock();}); target.disabled = !state.kata.available;
   const run = button("▶  Run tests", "btn primary", startRun); run.id = "run-button"; run.disabled = !state.kata.available || Boolean(state.active);
   controls.append(label, target, run); heading.append(intro, controls); main.append(heading);
   const tabs = el("div", "tabs"); [["workspace", "Execution workspace"], ["guide", "Kata instructions"]].forEach(([id, text]) => {const tab = button(text, `tab ${id === "workspace" ? "active" : ""}`, () => {state.tab = id; document.querySelectorAll(".tab").forEach(n => n.classList.toggle("active", n === tab)); $("#workspace").hidden = id !== "workspace"; $("#guide").hidden = id !== "guide";}); tabs.append(tab);}); main.append(tabs);
@@ -81,7 +85,11 @@ async function openKata(id, runId = null) {
   function panel(title, id, caption) {const panel = el("section", "panel"), header = el("div", "panel-header"); header.append(el("h2", "", title), el("small", "", caption)); panel.append(header); const body = el("div"); body.id = id; panel.append(body); return panel;}
   const explorer = panel("Test explorer", "test-list", `${state.kata.test_count || 0} DISCOVERED`); explorer.append(el("div", "context-note", "Discovered tests are listed before a run without importing kata code. Edit working.py in your IDE. Tests are real; a green result alone does not prove TDD or refactoring."));
   const middle = el("div"), map = panel("Execution map", "flow", "GUIDE + OBSERVATIONS"), timeline = panel("Event timeline", "timeline", "CAPTURED EVENTS"); middle.append(map, timeline); middle.style.display = "grid"; middle.style.gap = "14px";
-  grid.append(explorer, middle, panel("Event inspector", "inspector", "SELECT A STEP")); workspace.append(grid); main.append(workspace, guide);
+  grid.append(explorer, middle, panel("Event inspector", "inspector", "SELECT A STEP")); workspace.append(grid);
+  const dock = el("div", "workspace-run-dock"); dock.id = "workspace-run-dock";
+  const dockLabel = el("span", "dock-target"); dockLabel.id = "dock-target";
+  const dockRun = button("▶ Run tests", "btn primary", startRun); dockRun.id = "workspace-run-button";
+  dock.append(dockLabel, dockRun); workspace.append(dock); main.append(workspace, guide);
   const previous = runId || state.runs.find(r => r.kata_id === id)?.id;
   if (previous) {await loadRun(previous);} else paint();
 }
@@ -155,13 +163,16 @@ function paint() {
   const finished = events.filter(e => e.kind === "test_finished"), passed = finished.filter(e => e.status === "passed").length, failed = finished.filter(e => ["failed", "error"].includes(e.status)).length;
   const running = state.events.length > 0 && state.events.at(-1).kind !== "run_finished";
   const tone = runTone(final, passed, failed, finished.length);
-  const statusLabel = state.mode === "replay" ? `Replay · ${tone === "neutral" ? "start" : tone}` : final?.status || (state.events.length ? "running" : "not run");
+  const statusLabel = state.mode === "replay" ? `Replay · ${tone === "neutral" ? "start" : tone}` : final?.status || (state.events.length ? "running" : "Not run yet");
   const summary = $("#run-summary"); summary.replaceChildren(pill(statusLabel, tone), el("span", "", `${passed} passed`), el("span", "", `${failed} failed / error`), el("span", "", `${finished.length} / ${suite?.total ?? state.kata.test_count ?? "—"} tests`));
   summary.append(el("span", "summary-caption", final?.reason || (state.runId ? `${state.events[0]?.target || state.target} · ${state.runId.slice(0, 8)} · ${state.events.length} recorded events` : "Run a suite to see genuine test events.")));
   const guidance = runGuidance(events, final, passed, failed, finished.length);
   const guidancePanel = $("#run-guidance"); guidancePanel.className = `run-guidance ${guidance.tone}`; guidancePanel.replaceChildren(el("strong", "", guidance.title), el("span", "guidance-why", guidance.why), el("span", "guidance-next", guidance.next));
   const replayPanel = $("#replay-bar"); replayPanel.className = `replay-bar ${tone}`;
   $("#run-button").disabled = !state.kata.available || Boolean(state.active) || running || state.launching;
+  const dockRun = $("#workspace-run-button");
+  if (dockRun) {dockRun.disabled = !state.kata.available || Boolean(state.active) || running || state.launching; dockRun.textContent = running || state.active || state.launching ? "◌ Run in progress" : `▶ Run ${state.kata.test_count || "all"} tests`;}
+  updateRunDock();
   $("#target").disabled = !state.kata.available || running;
   $("#play").disabled = !state.events.length || running; $("#step").disabled = !state.events.length || running; $("#cursor").disabled = !state.events.length || running;
   $("#cursor").max = String(state.events.length); $("#cursor").value = String(state.cursor); $("#position").textContent = `${state.cursor} / ${state.events.length}`;
@@ -171,7 +182,7 @@ function paint() {
   if (!tests.size) list.append(el("div", "empty", "No unittest-style tests were discovered for this kata."));
   tests.forEach((test, id) => {const event = test.end || test.start; const row = button("", `test-item ${state.selected?.test_id === id ? "selected" : ""}`, () => {state.selected = event; paint();}); const mark = test.status === "passed" ? "✓" : test.status === "running" ? "◌" : test.status === "skipped" ? "−" : test.status === "not_run" ? "○" : "×"; row.append(el("span", `verdict ${test.status}`, mark), el("span", "", test.start?.label || id.split(".").at(-1).replace(/^test_/, "").replaceAll("_", " "))); list.append(row);});
   const traces = events.filter(e => e.kind === "trace"), lastTrace = traces.at(-1), flow = $("#flow"); flow.className = "flow-canvas"; flow.replaceChildren(el("div", "map-note", "CONCEPTUAL ORDER · NOT A CALL GRAPH\nBADGES SHOW OBSERVED FUNCTION CALLS"));
-  (state.events[0]?.stages || state.kata.stages).forEach((stage, index) => {const count = traces.filter(e => e.stage === stage.id && e.action === "call").length; const node = el("div", `stage ${count ? "observed" : ""} ${lastTrace?.stage === stage.id ? "last" : ""}`), title = el("div", "stage-title"); title.append(el("h3", "", stage.label), el("span", "", count ? `${count} calls` : "not observed")); node.append(title, el("p", "", stage.functions.length ? stage.functions.map(name => name + "()").join(" · ") : "Design guide · no trace hook")); flow.append(node); if (index < (state.events[0]?.stages || state.kata.stages).length - 1) flow.append(el("div", "connector", "↓"));});
+  (state.events[0]?.stages || state.kata.stages).forEach((stage, index) => {const count = traces.filter(e => e.stage === stage.id && e.action === "call").length; const observation = count ? `${count} calls` : events.length ? "not observed" : stage.functions.length ? "run to observe" : "guide only"; const node = el("div", `stage ${count ? "observed" : ""} ${lastTrace?.stage === stage.id ? "last" : ""}`), title = el("div", "stage-title"); title.append(el("h3", "", stage.label), el("span", "", observation)); node.append(title, el("p", "", stage.functions.length ? stage.functions.map(name => name + "()").join(" · ") : "Design guide · no trace hook")); flow.append(node); if (index < (state.events[0]?.stages || state.kata.stages).length - 1) flow.append(el("div", "connector", "↓"));});
   const legend = el("div", "map-legend"), observed = el("span"), unobserved = el("span"); observed.append(el("i"), "Observed"); unobserved.append(el("i", "grey"), "Guide only"); legend.append(observed, unobserved); flow.append(legend);
   const timeline = $("#timeline"); timeline.className = "event-list"; timeline.replaceChildren();
   if (!events.length) timeline.append(el("div", "empty", "No events captured yet. Live results and replay use the same saved event log."));

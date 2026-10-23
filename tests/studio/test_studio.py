@@ -68,7 +68,7 @@ class StudioTests(unittest.TestCase):
     def test_failure_guidance_ui_keeps_event_derived_status_contract(self):
         asset = (ROOT / 'studio' / 'web' / 'app.js').read_text(encoding='utf-8')
         styles = (ROOT / 'studio' / 'web' / 'styles.css').read_text(encoding='utf-8')
-        for token in ('function runTone', 'function runGuidance', 'Starter target is intentionally red', 'Replay · ${tone'):
+        for token in ('function runTone', 'function runGuidance', 'function updateRunDock', 'workspace-run-dock', 'Starter target is intentionally red', 'Replay · ${tone', 'run to observe'):
             self.assertIn(token, asset)
         for token in ('.replay-bar.failed', '.replay-bar.mixed', '.run-guidance.failed', '.run-guidance.mixed'):
             self.assertIn(token, styles)

@@ -951,3 +951,28 @@
 @media(max-width:1000px) { .run-guidance { grid-template-columns: 1fr; gap: 6px; } }
 
 .verdict.not_run { color: #91a092; }
+
+/* Keep the primary action available when learners scroll through long test inventories. */
+.workspace-run-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  border: 1px solid #d8e2d6;
+  border-radius: 8px;
+  background: rgba(251, 252, 249, .97);
+  box-shadow: 0 -5px 18px rgba(23, 51, 52, .07);
+  backdrop-filter: blur(8px);
+}
+.dock-target { margin-right: auto; color: #718071; font: 10px var(--mono); }
+.workspace-run-dock .btn { min-width: 145px; }
+@media(max-width:700px) {
+  .workspace-run-dock { margin: 10px -5px 0; gap: 8px; padding: 9px; }
+  .dock-target { font-size: 9px; }
+  .workspace-run-dock .btn { min-width: 125px; padding: 10px; }
+}

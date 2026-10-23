@@ -79,6 +79,12 @@ The color changes while the replay slider moves, so an earlier all-green portion
 
 Every workspace also shows a concise **Run guidance** panel. For an incomplete Starter target, it identifies that the red state is expected, names the first failed test and its concise sanitized error, and directs the learner to create/select a Working copy rather than edit the reference solution. For a failing Solution or Working copy, it points to the first failed test/timeline event and recommends one focused red-green fix. Timeouts and interruptions explain the next safe action. Guidance is diagnostic; it does not claim to infer the learner's intent or certify a refactor.
 
+### Evaluation charts use real run data
+
+The overview’s **Latest recorded test outcomes** chart shows the newest saved suite summary for each kata, split into actual passed, failed, error, skipped, and expected-failure counts. It does not average, infer, or backfill values. A kata without a saved run is labeled **No run recorded · not a score**. The chart is a latest-run comparison, not a longitudinal quality trend.
+
+Each kata workspace’s **Test-by-test evaluation** plot updates as `test_finished` events arrive and follows the replay cursor when reviewing a saved run. Its x-axis is observed execution order, y-axis is captured test duration in milliseconds, and point color is the recorded outcome. A missing plot means no completion events have reached the current live/replay position yet. Neither chart calls a model or changes the test verdict.
+
 ### What the diagrams do—and do not—mean
 
 - The connected stages show a **conceptual teaching order**, not an observed dependency/call graph.

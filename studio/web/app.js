@@ -14,6 +14,102 @@ function updateRunDock() {
   const label = $("#dock-target");
   if (label && state.kata) label.textContent = `Selected target · ${state.target === "starter" ? "Starter exercise" : state.target === "working" ? "Working copy" : "Reference solution"}`;
 }
+const SVG_NS = "http://www.w3.org/2000/svg";
+function svgNode(name, attributes = {}, text = "") {
+  const node = document.createElementNS(SVG_NS, name);
+  Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value)));
+  if (text) node.textContent = text;
+  return node;
+}
+function latestRunByKata(katas, runs) {
+  const latest = new Map();
+  for (const run of runs) if (!latest.has(run.kata_id)) latest.set(run.kata_id, run);
+  return katas.map(kata => ({kata, run: latest.get(kata.id) || null}));
+}
+function renderOutcomeChart(container, katas, runs) {
+  container.replaceChildren();
+  const rows = latestRunByKata(katas, runs), keys = ["passed", "failed", "error", "skipped", "expected_failure"];
+  const colors = {passed: "#25865e", failed: "#c34e40", error: "#8f3b37", skipped: "#b7a05c", expected_failure: "#6b83a6"};
+  const totalFor = run => keys.reduce((sum, key) => sum + (Number(run?.counts?.[key]) || 0), 0);
+  const maxTotal = Math.max(1, ...rows.map(row => totalFor(row.run)));
+  const width = 960, labelWidth = 188, chartWidth = 590, rightWidth = 150, rowHeight = 33, top = 24;
+  const height = top + rows.length * rowHeight + 26;
+  const svg = svgNode("svg", {viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Latest recorded test outcomes for all katas. Each stacked bar shows actual passed, failed, error, skipped, and expected-failure counts; katas without runs have no bar."});
+  svg.append(svgNode("text", {x: labelWidth, y: 12, class: "chart-axis-label"}, "TESTS IN LATEST RECORDED RUN"));
+  [0, 0.25, 0.5, 0.75, 1].forEach(fraction => {
+    const x = labelWidth + chartWidth * fraction;
+    svg.append(svgNode("line", {x1: x, y1: top - 3, x2: x, y2: top + rows.length * rowHeight - 4, class: "chart-gridline"}));
+    svg.append(svgNode("text", {x, y: height - 5, class: "chart-axis-label", "text-anchor": fraction === 0 ? "start" : fraction === 1 ? "end" : "middle"}, String(Math.round(maxTotal * fraction))));
+  });
+  rows.forEach(({kata, run}, index) => {
+    const y = top + index * rowHeight;
+    svg.append(svgNode("text", {x: 0, y: y + 13, class: "chart-kata-label"}, kata.id.slice(0, 2)));
+    svg.append(svgNode("text", {x: 29, y: y + 13, class: "chart-kata-name"}, kata.title));
+    const count = totalFor(run);
+    if (!run) {
+      svg.append(svgNode("text", {x: labelWidth, y: y + 13, class: "chart-empty-label"}, "No run recorded · not a score"));
+      return;
+    }
+    if (!count) {
+      svg.append(svgNode("text", {x: labelWidth, y: y + 13, class: "chart-empty-label"}, run.status === "running" ? "Run in progress · awaiting test events" : `No completed tests · ${run.status}`));
+    } else {
+      let x = labelWidth;
+      for (const key of keys) {
+        const value = Number(run.counts?.[key]) || 0;
+        if (!value) continue;
+        const segmentWidth = chartWidth * value / maxTotal;
+        const rect = svgNode("rect", {x, y: y - 1, width: segmentWidth, height: 18, rx: 3, fill: colors[key], class: "chart-segment"});
+        rect.append(svgNode("title", {}, `${kata.title}: ${value} ${key.replaceAll("_", " ")}`));
+        svg.append(rect);
+        if (segmentWidth >= 25) svg.append(svgNode("text", {x: x + segmentWidth / 2, y: y + 12, class: "chart-segment-label"}, String(value)));
+        x += segmentWidth;
+      }
+    }
+    svg.append(svgNode("text", {x: labelWidth + chartWidth + 15, y: y + 13, class: `chart-status chart-status-${run.status}`}, `${run.status} · ${run.target}`));
+  });
+  container.append(svg);
+  const legend = el("div", "chart-legend");
+  keys.forEach(key => {const entry = el("span", "chart-legend-item"); entry.append(el("i", `chart-swatch ${key}`), key.replaceAll("_", " ")); legend.append(entry);});
+  container.append(legend);
+}
+function renderDurationChart(container, finished) {
+  container.replaceChildren();
+  if (!finished.length) {
+    container.append(el("div", "chart-empty", "No test-completion events captured at this replay position. Run tests to plot actual test durations and outcomes."));
+    return;
+  }
+  const width = 960, height = 245, left = 56, right = 24, top = 22, bottom = 42;
+  const plotWidth = width - left - right, plotHeight = height - top - bottom;
+  const maxDuration = Math.max(1, ...finished.map(event => Number(event.duration_ms) || 0));
+  const colors = {passed: "#25865e", failed: "#c34e40", error: "#8f3b37", skipped: "#b7a05c", expected_failure: "#6b83a6"};
+  const svg = svgNode("svg", {viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `Actual test durations for ${finished.length} completed tests in execution order. Each point color represents the recorded test outcome.`});
+  for (let tick = 0; tick <= 4; tick++) {
+    const fraction = tick / 4, y = top + plotHeight * fraction, value = Math.round(maxDuration * (1 - fraction));
+    svg.append(svgNode("line", {x1: left, y1: y, x2: width - right, y2: y, class: "chart-gridline"}));
+    svg.append(svgNode("text", {x: left - 9, y: y + 4, class: "chart-axis-label", "text-anchor": "end"}, `${value} ms`));
+  }
+  const points = finished.map((event, index) => {
+    const x = finished.length === 1 ? left + plotWidth / 2 : left + plotWidth * index / (finished.length - 1);
+    const duration = Math.max(0, Number(event.duration_ms) || 0);
+    const y = top + plotHeight * (1 - duration / maxDuration);
+    return {event, x, y, duration};
+  });
+  if (points.length > 1) svg.append(svgNode("polyline", {points: points.map(point => `${point.x},${point.y}`).join(" "), class: "chart-duration-line"}));
+  points.forEach((point, index) => {
+    const color = colors[point.event.status] || "#87958a";
+    svg.append(svgNode("line", {x1: point.x, y1: point.y, x2: point.x, y2: top + plotHeight, class: "chart-point-stem", stroke: color}));
+    const circle = svgNode("circle", {cx: point.x, cy: point.y, r: finished.length > 45 ? 4 : 6, fill: color, class: "chart-duration-point"});
+    circle.append(svgNode("title", {}, `${index + 1}. ${point.event.test_id?.split(".").at(-1) || "test"}: ${point.duration} ms · ${point.event.status}`));
+    svg.append(circle);
+  });
+  svg.append(svgNode("text", {x: left, y: height - 9, class: "chart-axis-label"}, "FIRST TEST"));
+  svg.append(svgNode("text", {x: width - right, y: height - 9, class: "chart-axis-label", "text-anchor": "end"}, `${finished.length} COMPLETED`));
+  container.append(svg);
+  const legend = el("div", "chart-legend");
+  Object.entries(colors).forEach(([key]) => {if (finished.some(event => event.status === key)) {const entry = el("span", "chart-legend-item"); entry.append(el("i", `chart-swatch ${key}`), key.replaceAll("_", " ")); legend.append(entry);}});
+  container.append(legend);
+}
+
 function nav() {
   $("#kata-nav").replaceChildren(...state.katas.map((kata, index) => {
     const item = button("", `kata-link ${state.kata?.id === kata.id ? "active" : ""}`, () => openKata(kata.id));
@@ -42,6 +138,10 @@ async function home() {
   [["◫", `${available}`, `/ ${state.katas.length} katas`, "Available to explore"], ["✓", String(discoveredTests), "discovered tests", "Visible before the first run."], ["↻", String(state.runs.length), "saved runs", "Real events. Replayable learning."]].forEach(([icon, value, caption, desc]) => {
     const stat = el("div", "stat"), text = el("div"), count = el("b", "", value + " "); count.append(el("small", "", caption)); text.append(count, el("p", "", desc)); stat.append(el("span", "stat-icon", icon), text); stats.append(stat);
   }); main.append(stats);
+  const outcomePanel = el("section", "evaluation-panel"), outcomeHeading = el("div", "evaluation-heading");
+  outcomeHeading.append(el("h2", "", "Latest recorded test outcomes"), el("p", "", "Actual test counts from each kata’s most recent saved run. Unrun katas have no bar; no estimate is plotted."));
+  outcomePanel.append(outcomeHeading);
+  const outcomeChart = el("div", "outcome-chart"); renderOutcomeChart(outcomeChart, state.katas, state.runs); outcomePanel.append(outcomeChart); main.append(outcomePanel);
   const title = el("div", "section-title"), text = el("div"); text.append(el("h2", "", "Your learning path"), el("p", "", "One boundary at a time. Start anywhere; build understanding as you go.")); title.append(text, pill("11 EXERCISES · PYTHON")); main.append(title);
   const cards = el("section", "cards");
   state.katas.forEach((kata, index) => {
@@ -74,6 +174,9 @@ async function openKata(id, runId = null) {
   if (!state.kata.available) workspace.append(el("div", "notice", "This kata is planned. Its diagram is a conceptual preview, not captured execution. Running will become available when its README, starter, solution, and tests are added."));
   if (state.active) {const notice = el("div", "notice", "A run is active. "); notice.id = "active-notice"; const active = state.runs.find(r => r.id === state.active); if (active) notice.append(button("Open active run →", "text-button", () => openKata(active.kata_id, active.id))); workspace.append(notice);}
   const summary = el("div", "run-summary"); summary.id = "run-summary"; workspace.append(summary);
+  const profile = el("section", "evaluation-panel run-profile"), profileHeading = el("div", "evaluation-heading");
+  profileHeading.append(el("h2", "", "Test-by-test evaluation"), el("p", "", "Live and replayed durations/outcomes from actual test-finished events."));
+  const durationChart = el("div"); durationChart.id = "duration-chart"; profile.append(profileHeading, durationChart); workspace.append(profile);
   const guidance = el("section", "run-guidance neutral"); guidance.id = "run-guidance"; guidance.setAttribute("aria-live", "polite"); workspace.append(guidance);
   const replay = el("div", "replay-bar neutral"); replay.id = "replay-bar";
   const play = button("▶ Replay", "btn", playReplay); play.id = "play";
@@ -166,6 +269,7 @@ function paint() {
   const statusLabel = state.mode === "replay" ? `Replay · ${tone === "neutral" ? "start" : tone}` : final?.status || (state.events.length ? "running" : "Not run yet");
   const summary = $("#run-summary"); summary.replaceChildren(pill(statusLabel, tone), el("span", "", `${passed} passed`), el("span", "", `${failed} failed / error`), el("span", "", `${finished.length} / ${suite?.total ?? state.kata.test_count ?? "—"} tests`));
   summary.append(el("span", "summary-caption", final?.reason || (state.runId ? `${state.events[0]?.target || state.target} · ${state.runId.slice(0, 8)} · ${state.events.length} recorded events` : "Run a suite to see genuine test events.")));
+  renderDurationChart($("#duration-chart"), finished);
   const guidance = runGuidance(events, final, passed, failed, finished.length);
   const guidancePanel = $("#run-guidance"); guidancePanel.className = `run-guidance ${guidance.tone}`; guidancePanel.replaceChildren(el("strong", "", guidance.title), el("span", "guidance-why", guidance.why), el("span", "guidance-next", guidance.next));
   const replayPanel = $("#replay-bar"); replayPanel.className = `replay-bar ${tone}`;

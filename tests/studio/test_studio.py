@@ -65,6 +65,15 @@ class StudioTests(unittest.TestCase):
             self.assertEqual(len(kata['tests']), kata['test_count'])
             self.assertTrue(all(test['id'].startswith('test_kata.') and test['label'] for test in kata['tests']))
 
+    def test_evaluation_charts_are_bound_to_saved_counts_and_real_test_events(self):
+        asset = (ROOT / 'studio' / 'web' / 'app.js').read_text(encoding='utf-8')
+        guide = (ROOT / 'docs' / 'kata-studio.md').read_text(encoding='utf-8')
+        for token in ('function renderOutcomeChart', 'run.counts?.[key]', 'No run recorded · not a score',
+                      'function renderDurationChart', 'event.duration_ms', 'state.runs'):
+            self.assertIn(token, asset)
+        self.assertIn('newest saved suite summary', guide)
+        self.assertIn('test_finished` events arrive', guide)
+
     def test_failure_guidance_ui_keeps_event_derived_status_contract(self):
         asset = (ROOT / 'studio' / 'web' / 'app.js').read_text(encoding='utf-8')
         styles = (ROOT / 'studio' / 'web' / 'styles.css').read_text(encoding='utf-8')

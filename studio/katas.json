@@ -193,18 +193,28 @@
     "stages": [
       {
         "id": "chat",
-        "label": "Chat identity",
-        "functions": []
+        "label": "Create or reuse session",
+        "functions": [
+          "open_turn",
+          "_session_for"
+        ]
       },
       {
         "id": "session",
-        "label": "Create or reuse",
-        "functions": []
+        "label": "Complete or fail turn",
+        "functions": [
+          "_transition",
+          "complete_turn",
+          "fail_turn"
+        ]
       },
       {
         "id": "turn",
-        "label": "Record turn",
-        "functions": []
+        "label": "Deduplicate or expire",
+        "functions": [
+          "expire_session",
+          "get_turn"
+        ]
       }
     ]
   },

@@ -226,18 +226,25 @@
     "stages": [
       {
         "id": "data",
-        "label": "Untrusted data",
-        "functions": []
+        "label": "Build trusted envelope",
+        "functions": [
+          "build_context",
+          "render_for_model"
+        ]
       },
       {
         "id": "boundary",
-        "label": "Trust boundary",
-        "functions": []
+        "label": "Preserve facts as data",
+        "functions": [
+          "extract_integer_facts"
+        ]
       },
       {
         "id": "control",
-        "label": "Capability check",
-        "functions": []
+        "label": "Check capability before dispatch",
+        "functions": [
+          "dispatch_tool"
+        ]
       }
     ]
   },

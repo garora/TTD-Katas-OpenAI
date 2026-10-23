@@ -1,11 +1,35 @@
 """Declarative curriculum discovery; availability is never a test verdict."""
 from __future__ import annotations
+import ast
 import json
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TARGETS = {"starter", "solution", "working"}
+
+def _test_manifest(path: Path) -> list[dict[str, str]]:
+    """Statically list unittest-style test methods without importing kata code."""
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8-sig"), filename=str(path))
+    except (OSError, SyntaxError):
+        return []
+
+    tests: list[dict[str, str]] = []
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef):
+            for child in node.body:
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name.startswith("test_"):
+                    tests.append({
+                        "id": f"test_kata.{node.name}.{child.name}",
+                        "label": child.name.removeprefix("test_").replace("_", " "),
+                    })
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test_"):
+            tests.append({
+                "id": f"test_kata.{node.name}",
+                "label": node.name.removeprefix("test_").replace("_", " "),
+            })
+    return tests
 
 
 def load_katas(root: Path = ROOT) -> list[dict]:
@@ -22,7 +46,10 @@ def load_katas(root: Path = ROOT) -> list[dict]:
             raise ValueError("Kata path escapes the curriculum")
         available = all((folder / name).is_file() for name in
                         ("README.md", "test_kata.py", "solution.py", "starter.py"))
+        tests = _test_manifest(folder / "test_kata.py") if available else []
         result.append({**item, "available": available,
+                       "tests": tests,
+                       "test_count": len(tests),
                        "targets": [name for name in ("solution", "starter", "working")
                                    if available and (folder / f"{name}.py").is_file()]})
     return result

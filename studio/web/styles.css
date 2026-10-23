@@ -949,3 +949,5 @@
 .pill.mixed { background: #fff0bf; color: #876111; }
 .pill.neutral { background: #f0f1ed; color: #717b71; }
 @media(max-width:1000px) { .run-guidance { grid-template-columns: 1fr; gap: 6px; } }
+
+.verdict.not_run { color: #91a092; }

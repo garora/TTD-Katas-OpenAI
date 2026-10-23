@@ -57,6 +57,14 @@ class StudioTests(unittest.TestCase):
                 self.assertIn('solution',kata['targets'])
                 self.assertIn('starter',kata['targets'])
 
+    def test_static_test_manifests_cover_every_published_kata_test(self):
+        katas = load_katas()
+        self.assertEqual(sum(kata['test_count'] for kata in katas), 111)
+        for kata in katas:
+            self.assertGreater(kata['test_count'], 0)
+            self.assertEqual(len(kata['tests']), kata['test_count'])
+            self.assertTrue(all(test['id'].startswith('test_kata.') and test['label'] for test in kata['tests']))
+
     def test_failure_guidance_ui_keeps_event_derived_status_contract(self):
         asset = (ROOT / 'studio' / 'web' / 'app.js').read_text(encoding='utf-8')
         styles = (ROOT / 'studio' / 'web' / 'styles.css').read_text(encoding='utf-8')
@@ -73,6 +81,8 @@ class StudioTests(unittest.TestCase):
         self.assertEqual(len(katas), 11)
         self.assertTrue(all(kata['available'] for kata in katas))
         self.assertTrue(all({'solution', 'starter'}.issubset(kata['targets']) for kata in katas))
+        self.assertEqual(sum(kata['test_count'] for kata in katas), 111)
+        self.assertTrue(all(len(kata['tests']) == kata['test_count'] for kata in katas))
 
     def test_unknown_planned_and_path_targets_are_rejected(self):
         for kata, target in [('../outside','solution'),

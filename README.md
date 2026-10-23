@@ -22,7 +22,7 @@ Open **http://127.0.0.1:8765**. If that port is busy, run `python -m studio --po
 
 1. Open an available kata from the dashboard or left navigation.
 2. Select **Reference solution** or **Starter (exercise)** and click **Run tests**.
-3. Follow genuine live `unittest` results in the **Test explorer** and recorded function events in the **Event timeline**.
+3. See every statically discovered kata test in the **Test explorer** before execution, then follow genuine live `unittest` results and recorded function events in the **Event timeline**.
 4. Select an event to inspect its test, source location, outcome, return type, or failure details.
 5. Use **Kata instructions** to read the exercise without leaving the workspace.
 6. After the run finishes, choose **Replay**, **Step**, or the event slider to understand what happened. Replay reads saved events; it does not execute tests again. Its visual state is **green** for passed, **amber** for mixed, and **red** for failed, timed-out, or interrupted snapshots.

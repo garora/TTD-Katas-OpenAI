@@ -20,7 +20,7 @@ The service always binds to `127.0.0.1`; there is intentionally no public-host o
 
 ## What is available?
 
-Katas **01 — Prompt Builder**, **02 — Structured Output**, **03 — Supplier Quote Tool**, **04 — Tool Selection**, **05 — Tool Loop**, **06 — Budget Policy**, **07 — Session State**, **08 — Prompt Injection**, and **09 — Evidence & Citations** have implementations and real test suites. Katas **10–11** are visible as planned previews with disabled execution. Availability and last test outcome are different: a planned kata is never presented as passing.
+Katas **01 — Prompt Builder**, **02 — Structured Output**, **03 — Supplier Quote Tool**, **04 — Tool Selection**, **05 — Tool Loop**, **06 — Budget Policy**, **07 — Session State**, **08 — Prompt Injection**, **09 — Evidence & Citations**, and **10 — Multi-Agent Delegation** have implementations and real test suites. Kata **11** is visible as a planned preview with disabled execution. Availability and last test outcome are different: a planned kata is never presented as passing.
 
 The registry (`studio/katas.json`) contains the curriculum descriptions, conceptual stages, and the function names associated with those stages. Availability is derived from the presence of a kata's README, tests, starter, and solution—not hardcoded to a pass/fail badge. Adding those files makes a registered kata available on the next dashboard refresh.
 

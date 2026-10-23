@@ -285,18 +285,25 @@
     "stages": [
       {
         "id": "root",
-        "label": "Prepare tasks",
-        "functions": []
+        "label": "Prepare correlated tasks",
+        "functions": [
+          "_tasks"
+        ]
       },
       {
         "id": "children",
-        "label": "Delegate",
-        "functions": []
+        "label": "Run bounded delegates",
+        "functions": [
+          "delegate_procurement_review",
+          "_execute"
+        ]
       },
       {
         "id": "aggregate",
-        "label": "Combine outcomes",
-        "functions": []
+        "label": "Aggregate results + uncertainty",
+        "functions": [
+          "to_dict"
+        ]
       }
     ]
   },

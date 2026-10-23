@@ -128,18 +128,28 @@
     "stages": [
       {
         "id": "model",
-        "label": "Model event",
-        "functions": []
+        "label": "Read model event",
+        "functions": [
+          "start_turn",
+          "continue_after_tool",
+          "_next_event"
+        ]
       },
       {
         "id": "dispatch",
         "label": "Validate + dispatch",
-        "functions": []
+        "functions": [
+          "run_tool_loop",
+          "_validated_call",
+          "_normalized_output"
+        ]
       },
       {
         "id": "continue",
         "label": "Return or continue",
-        "functions": []
+        "functions": [
+          "_failed"
+        ]
       }
     ]
   },

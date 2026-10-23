@@ -256,18 +256,24 @@
     "stages": [
       {
         "id": "facts",
-        "label": "Collect facts",
-        "functions": []
+        "label": "Validate evidence records",
+        "functions": [
+          "__post_init__"
+        ]
       },
       {
         "id": "evidence",
-        "label": "Map sources",
-        "functions": []
+        "label": "Map evidence to claims",
+        "functions": [
+          "assemble_grounded_response"
+        ]
       },
       {
         "id": "claims",
-        "label": "Validate claims",
-        "functions": []
+        "label": "Represent uncertainty + recommendation",
+        "functions": [
+          "to_dict"
+        ]
       }
     ]
   },

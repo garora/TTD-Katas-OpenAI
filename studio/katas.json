@@ -97,18 +97,26 @@
     "stages": [
       {
         "id": "intent",
-        "label": "Inspect request",
-        "functions": []
+        "label": "Read recorded intent",
+        "functions": [
+          "select_action"
+        ]
       },
       {
         "id": "route",
         "label": "Select or clarify",
-        "functions": []
+        "functions": [
+          "run_tool_selection",
+          "_clarification_result"
+        ]
       },
       {
         "id": "validate",
-        "label": "Validate action",
-        "functions": []
+        "label": "Allow-list + validate",
+        "functions": [
+          "_validate_quote_arguments",
+          "_non_blank_text"
+        ]
       }
     ]
   },

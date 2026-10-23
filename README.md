@@ -6,7 +6,7 @@ A progressive set of **test-driven development (TDD) exercises for AI applicatio
 
 ## TDD Kata Studio — visualize the tests
 
-A shared local dashboard is now available, with an individual visual workspace for every kata. **Katas 01–10 are implemented and runnable. Kata 11 is the final planned preview.** Availability is separate from test status; planned exercises are never shown as passing.
+A shared local dashboard is now available, with an individual visual workspace for every kata. **All **11 katas are implemented and runnable** in the shared Studio.** Availability is separate from test status; planned exercises are never shown as passing.
 
 ### Start the dashboard
 

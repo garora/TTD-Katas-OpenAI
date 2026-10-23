@@ -315,17 +315,19 @@
     "stages": [
       {
         "id": "dataset",
-        "label": "Load cases",
-        "functions": []
+        "label": "Load versioned cases",
+        "functions": [
+          "evaluate_dataset"
+        ]
       },
       {
         "id": "graders",
-        "label": "Grade contracts",
+        "label": "Grade observable invariants",
         "functions": []
       },
       {
         "id": "report",
-        "label": "Report regressions",
+        "label": "Aggregate report",
         "functions": []
       }
     ]

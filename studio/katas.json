@@ -1,0 +1,335 @@
+[
+  {
+    "id": "01-prompt-builder",
+    "title": "Prompt Builder",
+    "tagline": "Trust begins at the prompt boundary.",
+    "description": "Compose trusted instructions without promoting reference data to policy.",
+    "stages": [
+      {
+        "id": "compose",
+        "label": "Compose instructions",
+        "functions": [
+          "build_instructions"
+        ]
+      },
+      {
+        "id": "validate",
+        "label": "Validate trusted text",
+        "functions": [
+          "_required_text",
+          "_optional_text"
+        ]
+      },
+      {
+        "id": "envelope",
+        "label": "Return data envelope",
+        "functions": []
+      }
+    ]
+  },
+  {
+    "id": "02-structured-output",
+    "title": "Structured Output",
+    "tagline": "Turn uncertain text into a reliable contract.",
+    "description": "Parse, validate, and normalize a typed procurement recommendation.",
+    "stages": [
+      {
+        "id": "parse",
+        "label": "Decode payload",
+        "functions": [
+          "_parse_payload"
+        ]
+      },
+      {
+        "id": "validate",
+        "label": "Validate fields",
+        "functions": [
+          "_required_text",
+          "_non_negative_integer",
+          "_decision",
+          "_uncertainties"
+        ]
+      },
+      {
+        "id": "result",
+        "label": "Build typed result",
+        "functions": [
+          "parse_recommendation"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "03-supplier-quote-tool",
+    "title": "Supplier Quote Tool",
+    "tagline": "Facts from code. Not guesswork.",
+    "description": "Validate a request and calculate an evidence-backed supplier quote.",
+    "stages": [
+      {
+        "id": "input",
+        "label": "Receive arguments",
+        "functions": [
+          "_arguments_mapping"
+        ]
+      },
+      {
+        "id": "validate",
+        "label": "Validate SKU + quantity",
+        "functions": [
+          "_sku",
+          "_quantity"
+        ]
+      },
+      {
+        "id": "quote",
+        "label": "Calculate + return quote",
+        "functions": [
+          "get_supplier_quote"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "04-tool-selection",
+    "title": "Tool Selection",
+    "tagline": "Choose the next action.",
+    "description": "Choose an allowed tool or ask for missing requirements.",
+    "stages": [
+      {
+        "id": "intent",
+        "label": "Read recorded intent",
+        "functions": [
+          "select_action"
+        ]
+      },
+      {
+        "id": "route",
+        "label": "Select or clarify",
+        "functions": [
+          "run_tool_selection",
+          "_clarification_result"
+        ]
+      },
+      {
+        "id": "validate",
+        "label": "Allow-list + validate",
+        "functions": [
+          "_validate_quote_arguments",
+          "_non_blank_text"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "05-tool-loop",
+    "title": "Tool Loop",
+    "tagline": "Make every iteration count.",
+    "description": "Bound the model/tool cycle and handle failures explicitly.",
+    "stages": [
+      {
+        "id": "model",
+        "label": "Read model event",
+        "functions": [
+          "start_turn",
+          "continue_after_tool",
+          "_next_event"
+        ]
+      },
+      {
+        "id": "dispatch",
+        "label": "Validate + dispatch",
+        "functions": [
+          "run_tool_loop",
+          "_validated_call",
+          "_normalized_output"
+        ]
+      },
+      {
+        "id": "continue",
+        "label": "Return or continue",
+        "functions": [
+          "_failed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "06-budget-policy",
+    "title": "Budget Policy",
+    "tagline": "Keep decisions deterministic.",
+    "description": "Enforce budgets and deadlines in conventional code.",
+    "stages": [
+      {
+        "id": "quote",
+        "label": "Validate quote facts",
+        "functions": [
+          "_non_blank_text",
+          "_non_negative_integer",
+          "_positive_integer",
+          "total_usd"
+        ]
+      },
+      {
+        "id": "policy",
+        "label": "Check constraints",
+        "functions": [
+          "evaluate_quote"
+        ]
+      },
+      {
+        "id": "decision",
+        "label": "Build decision + reasons",
+        "functions": [
+          "_reason"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "07-session-state",
+    "title": "Session State",
+    "tagline": "A conversation with explicit memory.",
+    "description": "Create, reuse, and isolate session and turn identities.",
+    "stages": [
+      {
+        "id": "chat",
+        "label": "Create or reuse session",
+        "functions": [
+          "open_turn",
+          "_session_for"
+        ]
+      },
+      {
+        "id": "session",
+        "label": "Complete or fail turn",
+        "functions": [
+          "_transition",
+          "complete_turn",
+          "fail_turn"
+        ]
+      },
+      {
+        "id": "turn",
+        "label": "Deduplicate or expire",
+        "functions": [
+          "expire_session",
+          "get_turn"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "08-prompt-injection",
+    "title": "Prompt Injection",
+    "tagline": "Data cannot grant authority.",
+    "description": "Keep hostile reference content outside privileged capabilities.",
+    "stages": [
+      {
+        "id": "data",
+        "label": "Build trusted envelope",
+        "functions": [
+          "build_context",
+          "render_for_model"
+        ]
+      },
+      {
+        "id": "boundary",
+        "label": "Preserve facts as data",
+        "functions": [
+          "extract_integer_facts"
+        ]
+      },
+      {
+        "id": "control",
+        "label": "Check capability before dispatch",
+        "functions": [
+          "dispatch_tool"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "09-evidence-citations",
+    "title": "Evidence & Citations",
+    "tagline": "Make every claim traceable.",
+    "description": "Connect facts to evidence and surface uncertainty.",
+    "stages": [
+      {
+        "id": "facts",
+        "label": "Validate evidence records",
+        "functions": [
+          "__post_init__"
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "Map evidence to claims",
+        "functions": [
+          "assemble_grounded_response"
+        ]
+      },
+      {
+        "id": "claims",
+        "label": "Represent uncertainty + recommendation",
+        "functions": [
+          "to_dict"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "10-multi-agent-delegation",
+    "title": "Multi-Agent Delegation",
+    "tagline": "Delegate work, not accountability.",
+    "description": "Pass complete facts and aggregate honest child outcomes.",
+    "stages": [
+      {
+        "id": "root",
+        "label": "Prepare correlated tasks",
+        "functions": [
+          "_tasks"
+        ]
+      },
+      {
+        "id": "children",
+        "label": "Run bounded delegates",
+        "functions": [
+          "delegate_procurement_review",
+          "_execute"
+        ]
+      },
+      {
+        "id": "aggregate",
+        "label": "Aggregate results + uncertainty",
+        "functions": [
+          "to_dict"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "11-evaluation-dataset",
+    "title": "Evaluation Dataset",
+    "tagline": "Turn every defect into a regression.",
+    "description": "Version cases and grade observable behavior.",
+    "stages": [
+      {
+        "id": "dataset",
+        "label": "Load versioned cases",
+        "functions": [
+          "evaluate_dataset"
+        ]
+      },
+      {
+        "id": "graders",
+        "label": "Grade observable invariants",
+        "functions": []
+      },
+      {
+        "id": "report",
+        "label": "Aggregate report",
+        "functions": []
+      }
+    ]
+  }
+]

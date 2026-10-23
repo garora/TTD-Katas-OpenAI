@@ -171,3 +171,9 @@ A recommendation is different from evidence: it is a policy/domain conclusion ba
 ## Security notes
 
 This architecture reduces risk; it does not make an LLM infallible. Defense in depth includes least-privilege tool design, input and output validation, secret management outside prompts, audit trails, rate limits, access control, testing with adversarial fixtures, and human approval for consequential actions.
+
+## Optional visualization layer: Kata Studio
+
+The `studio/` package wraps kata tests; it does not replace their domain code or add provider calls. A loopback-only HTTP server starts a registered kata in a fresh Python process, captures `unittest` and selected function events, persists a JSONL log, and delivers the same events to a static browser UI over SSE. The browser reconstructs replay from the recorded events without executing code.
+
+The curriculum/visual-stage registry is `studio/katas.json`. The diagrams are conceptual; observed badges come only from trace events. Workers have a reduced environment, audit-hook restrictions, timeouts, and no API dependency. This is defense in depth for trusted code—not a sandbox for arbitrary Python. See [the Studio guide](kata-studio.md) for the operating limits and privacy model.

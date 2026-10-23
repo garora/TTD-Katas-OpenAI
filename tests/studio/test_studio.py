@@ -57,6 +57,14 @@ class StudioTests(unittest.TestCase):
                 self.assertIn('solution',kata['targets'])
                 self.assertIn('starter',kata['targets'])
 
+    def test_failure_guidance_ui_keeps_event_derived_status_contract(self):
+        asset = (ROOT / 'studio' / 'web' / 'app.js').read_text(encoding='utf-8')
+        styles = (ROOT / 'studio' / 'web' / 'styles.css').read_text(encoding='utf-8')
+        for token in ('function runTone', 'function runGuidance', 'Starter target is intentionally red', 'Replay · ${tone'):
+            self.assertIn(token, asset)
+        for token in ('.replay-bar.failed', '.replay-bar.mixed', '.run-guidance.failed', '.run-guidance.mixed'):
+            self.assertIn(token, styles)
+
     def test_dashboard_api_publishes_all_eleven_as_runnable(self):
         server = self.server()
         status, payload = self.request(server, 'GET', '/api/katas')

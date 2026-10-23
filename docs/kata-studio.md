@@ -66,6 +66,19 @@ After a run ends:
 
 SSE reconnects use event sequence IDs to resume without duplicating events or re-executing tests. Leaving a workspace does not cancel or retry an active run. Reopen it from Run history. Only one run may execute at a time; overlap is rejected by the backend as well as disabled in the UI.
 
+### Run color and concise guidance
+
+Studio colors the **summary pill**, **Run guidance**, and **Recorded replay** bar from the event snapshot currently on screen—not from a generic replay state:
+
+- **Green:** all captured completed tests passed.
+- **Amber:** some captured tests passed and some failed/errored.
+- **Red:** a captured failure/error, timeout, or interruption requires attention.
+- **Neutral:** no completed result is available at the selected replay position.
+
+The color changes while the replay slider moves, so an earlier all-green portion of a run can be inspected without implying that the complete run passed.
+
+Every workspace also shows a concise **Run guidance** panel. For an incomplete Starter target, it identifies that the red state is expected, names the first failed test and its concise sanitized error, and directs the learner to create/select a Working copy rather than edit the reference solution. For a failing Solution or Working copy, it points to the first failed test/timeline event and recommends one focused red-green fix. Timeouts and interruptions explain the next safe action. Guidance is diagnostic; it does not claim to infer the learner's intent or certify a refactor.
+
 ### What the diagrams do—and do not—mean
 
 - The connected stages show a **conceptual teaching order**, not an observed dependency/call graph.

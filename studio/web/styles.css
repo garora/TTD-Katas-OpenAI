@@ -918,3 +918,34 @@
                                                                                                                                                                                                                                                                                                                                                                                                                               .btn{
                                                                                                                                                                                                                                                                                                                                                                                                                                 white-space:nowrap;
                                                                                                                                                                                                                                                                                                                                                                                                                                 flex-shrink:0}
+
+/* Current live/replay verdict is always visible: green passed, amber mixed, red failed. */
+.run-guidance {
+  display: grid;
+  grid-template-columns: minmax(145px, 0.65fr) minmax(240px, 1.35fr) minmax(270px, 1.8fr);
+  gap: 16px;
+  align-items: start;
+  margin: 0 0 16px;
+  padding: 13px 16px;
+  border: 1px solid var(--line);
+  border-left: 4px solid #aeb9ac;
+  border-radius: 8px;
+  background: #f8faf6;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.run-guidance strong { font-size: 11px; }
+.guidance-why, .guidance-next { color: var(--muted); }
+.run-guidance.passed { border-left-color: var(--green); background: #edf7ef; }
+.run-guidance.failed, .run-guidance.timed_out, .run-guidance.interrupted { border-left-color: var(--red); background: #fff1ed; }
+.run-guidance.mixed { border-left-color: #b88728; background: #fff8e7; }
+.replay-bar.passed { border-color: #c8e5d1; background: #eef7f0; }
+.replay-bar.failed, .replay-bar.timed_out, .replay-bar.interrupted { border-color: #efc2b9; background: #fff0ec; }
+.replay-bar.mixed { border-color: #ead49c; background: #fff8e6; }
+.replay-bar.failed label, .replay-bar.timed_out label, .replay-bar.interrupted label { color: #9d4337; }
+.replay-bar.mixed label { color: #8b681a; }
+.replay-bar.failed input, .replay-bar.timed_out input, .replay-bar.interrupted input { accent-color: var(--red); }
+.replay-bar.mixed input { accent-color: #b88728; }
+.pill.mixed { background: #fff0bf; color: #876111; }
+.pill.neutral { background: #f0f1ed; color: #717b71; }
+@media(max-width:1000px) { .run-guidance { grid-template-columns: 1fr; gap: 6px; } }

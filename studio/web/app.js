@@ -69,7 +69,8 @@ async function openKata(id, runId = null) {
   if (!state.kata.available) workspace.append(el("div", "notice", "This kata is planned. Its diagram is a conceptual preview, not captured execution. Running will become available when its README, starter, solution, and tests are added."));
   if (state.active) {const notice = el("div", "notice", "A run is active. "); notice.id = "active-notice"; const active = state.runs.find(r => r.id === state.active); if (active) notice.append(button("Open active run →", "text-button", () => openKata(active.kata_id, active.id))); workspace.append(notice);}
   const summary = el("div", "run-summary"); summary.id = "run-summary"; workspace.append(summary);
-  const replay = el("div", "replay-bar"); replay.id = "replay-bar";
+  const guidance = el("section", "run-guidance neutral"); guidance.id = "run-guidance"; guidance.setAttribute("aria-live", "polite"); workspace.append(guidance);
+  const replay = el("div", "replay-bar neutral"); replay.id = "replay-bar";
   const play = button("▶ Replay", "btn", playReplay); play.id = "play";
   const step = button("Step →", "btn", () => {pause(); setCursor(Math.min(state.cursor + 1, state.events.length));}); step.id = "step";
   const slider = el("input"); slider.id = "cursor"; slider.type = "range"; slider.min = "0"; slider.max = "0"; slider.value = "0"; slider.setAttribute("aria-label", "Replay event position"); slider.addEventListener("input", () => {pause(); setCursor(Number(slider.value));});
@@ -111,6 +112,33 @@ function subscribe(runId, after) {
   };
   stream.onerror = () => {if (state.source === stream) toast("Stream disconnected. Reconnecting by event ID; the run will not be rerun.");};
 }
+function runTone(final, passed, failed, finished) {
+  if (final?.status === "timed_out") return "timed_out";
+  if (final?.status === "interrupted") return "interrupted";
+  if (failed && passed) return "mixed";
+  if (failed || final?.status === "failed" || final?.status === "error") return "failed";
+  if (finished && !failed) return "passed";
+  return final ? final.status : "neutral";
+}
+function conciseFailure(event) {
+  const details = String(event?.details || "").split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const useful = details.reverse().find(line => /(?:AssertionError|NotImplementedError|ValueError|TypeError|RuntimeError|ImportError):/.test(line));
+  return useful || "The test did not satisfy its expected contract.";
+}
+function runGuidance(events, final, passed, failed, finished) {
+  const target = state.events[0]?.target || state.target;
+  const firstFailure = events.find(event => event.kind === "test_finished" && ["failed", "error"].includes(event.status));
+  const tone = runTone(final, passed, failed, finished);
+  if (!events.length) return {tone:"neutral", title:"No result yet", why:"Run the selected target to capture real test outcomes.", next:"Start with Reference solution to explore a passing run, or choose Starter/Working copy to practice."};
+  if (tone === "passed") return {tone, title:"All captured tests passed", why:`${passed} test${passed === 1 ? "" : "s"} passed for the selected target.`, next:"Refactor only with the tests still green, or open the next kata to continue the learning path."};
+  if (tone === "timed_out") return {tone, title:"Run timed out", why:final?.reason || "The worker exceeded its configured time limit.", next:"Inspect the last captured event, remove the blocking behavior, then start a new run deliberately."};
+  if (tone === "interrupted") return {tone, title:"Run was interrupted", why:final?.reason || "The Studio server stopped before the run completed.", next:"Inspect the saved events, then explicitly start a new run when the environment is ready."};
+  const label = firstFailure?.test_id?.split(".").at(-1)?.replace(/^test_/, "").replaceAll("_", " ") || "the first failing test";
+  const why = `${label}: ${conciseFailure(firstFailure)}`;
+  if (target === "starter") return {tone, title: failed && passed ? "Mixed starter result" : "Starter target is intentionally red", why, next:"Choose or create Working copy, implement the smallest behavior named by this test, then rerun. Do not edit the reference solution to make the starter green."};
+  if (String(firstFailure?.details || "").includes("NotImplementedError")) return {tone, title: failed && passed ? "Mixed result" : "Implementation is incomplete", why, next:"Implement the smallest behavior named by the failing test, then rerun before refactoring."};
+  return {tone, title: failed && passed ? "Mixed result" : "Tests need attention", why, next:"Select the failed test or its timeline event to inspect expected versus actual behavior, apply one focused fix, and rerun."};
+}
 function pause() {if (state.playback) clearInterval(state.playback); state.playback = null; if ($("#play")) $("#play").textContent = "▶ Replay";}
 function setCursor(value) {state.mode = "replay"; state.cursor = value; state.selected = null; paint();}
 function playReplay() {
@@ -124,9 +152,14 @@ function paint() {
   if (!$("#workspace")) return;
   const events = state.events.slice(0, state.cursor), final = events.findLast(e => e.kind === "run_finished"), suite = events.find(e => e.kind === "suite_loaded");
   const finished = events.filter(e => e.kind === "test_finished"), passed = finished.filter(e => e.status === "passed").length, failed = finished.filter(e => ["failed", "error"].includes(e.status)).length;
-  const summary = $("#run-summary"); summary.replaceChildren(pill(state.mode === "replay" ? "Replay" : final?.status || (state.events.length ? "Running" : "Not run"), state.mode === "replay" ? "" : final?.status || ""), el("span", "", `${passed} passed`), el("span", "", `${failed} failed / error`), el("span", "", `${finished.length} / ${suite?.total ?? "—"} tests`));
-  summary.append(el("span", "summary-caption", final?.reason || (state.runId ? `${state.events[0]?.target || state.target} · ${state.runId.slice(0, 8)} · ${state.events.length} recorded events` : "Run a suite to see genuine test events.")));
   const running = state.events.length > 0 && state.events.at(-1).kind !== "run_finished";
+  const tone = runTone(final, passed, failed, finished.length);
+  const statusLabel = state.mode === "replay" ? `Replay · ${tone === "neutral" ? "start" : tone}` : final?.status || (state.events.length ? "running" : "not run");
+  const summary = $("#run-summary"); summary.replaceChildren(pill(statusLabel, tone), el("span", "", `${passed} passed`), el("span", "", `${failed} failed / error`), el("span", "", `${finished.length} / ${suite?.total ?? "—"} tests`));
+  summary.append(el("span", "summary-caption", final?.reason || (state.runId ? `${state.events[0]?.target || state.target} · ${state.runId.slice(0, 8)} · ${state.events.length} recorded events` : "Run a suite to see genuine test events.")));
+  const guidance = runGuidance(events, final, passed, failed, finished.length);
+  const guidancePanel = $("#run-guidance"); guidancePanel.className = `run-guidance ${guidance.tone}`; guidancePanel.replaceChildren(el("strong", "", guidance.title), el("span", "guidance-why", guidance.why), el("span", "guidance-next", guidance.next));
+  const replayPanel = $("#replay-bar"); replayPanel.className = `replay-bar ${tone}`;
   $("#run-button").disabled = !state.kata.available || Boolean(state.active) || running || state.launching;
   $("#target").disabled = !state.kata.available || running;
   $("#play").disabled = !state.events.length || running; $("#step").disabled = !state.events.length || running; $("#cursor").disabled = !state.events.length || running;

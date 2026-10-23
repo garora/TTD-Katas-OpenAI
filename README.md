@@ -6,7 +6,7 @@ A progressive set of **test-driven development (TDD) exercises for AI applicatio
 
 ## TDD Kata Studio — visualize the tests
 
-A shared local dashboard is now available, with an individual visual workspace for every kata. **All **11 katas are implemented and runnable** in the shared Studio.** Availability is separate from test status; planned exercises are never shown as passing.
+A shared local dashboard is now available, with an individual visual workspace for every kata. **All 11 katas are implemented and runnable in the shared Studio.** Availability is separate from test status; planned exercises are never shown as passing.
 
 ### Start the dashboard
 
@@ -46,7 +46,7 @@ On macOS/Linux, use `cp` instead of `Copy-Item`. Refresh the page and reopen the
 python -B scripts/run_tests.py
 ```
 
-This runs package, Studio, and all available reference-kata suites in separate interpreters, preventing collisions between same-named kata modules. Studio tests also verify real failing starter runs, timeouts, replay persistence, live event delivery, and request restrictions. They make loopback HTTP requests only—not OpenAI calls.
+This runs package, Studio, and all 11 reference-kata suites in separate interpreters, preventing collisions between same-named kata modules. Studio tests also verify real failing starter runs, timeouts, replay persistence, live event delivery, and request restrictions. They make loopback HTTP requests only—not OpenAI calls.
 
 ### Local data and safety
 
@@ -105,55 +105,33 @@ Start from deterministic components—validation, policy, tool functions, and se
 ```text
 TDD-Katas-OpenAI/
 ├── README.md                         # Curriculum, setup, and kata index
-├── studio/                           # Shared local dashboard, runner, SSE, and visual registry
+├── AGENTS.md                         # Contributor instructions and Studio conventions
+├── studio/                           # Local dashboard, runner, SSE, and visual registry
+│   ├── katas.json                    # Curriculum stages and trace mappings
+│   └── web/                          # Dependency-free browser UI
 ├── docs/
 │   ├── architecture.md                # Boundaries: model, tools, policy, storage
 │   ├── testing-strategy.md            # Offline, contract, and live-eval guidance
-│   └── kata-authoring-guide.md        # Standard for adding a new kata
+│   ├── kata-authoring-guide.md        # Standard for adding a kata
+│   └── kata-studio.md                 # Studio usage, replay, safety, and extension guide
 ├── katas/
-│   ├── 01-prompt-builder/
-│   │   ├── README.md                  # Problem statement and progressive steps
+│   ├── 01-prompt-builder/ ... 11-evaluation-dataset/
+│   │   ├── README.md                  # Problem statement and progression
 │   │   ├── starter.py                 # Deliberately incomplete learner code
-│   │   ├── solution.py                # Reference solution (optional/revealed later)
-│   │   └── test_kata.py               # Tests that drive this exercise
-│   ├── 02-structured-output/
-│   ├── 03-supplier-quote-tool/
-│   ├── 04-tool-selection/
-│   ├── 05-tool-loop/
-│   ├── 06-budget-policy/
-│   ├── 07-session-state/
-│   ├── 08-prompt-injection/
-│   ├── 09-evidence-citations/
-│   ├── 10-multi-agent-delegation/
-│   └── 11-evaluation-dataset/
-├── src/
-│   └── openai_tdd_katas/
-│       ├── __init__.py
-│       ├── contracts.py               # Pydantic/domain models and typed results
-│       ├── model_client.py            # Narrow model-client adapter/protocol
-│       ├── orchestration.py           # Tool-loop/session orchestration
-│       ├── policy.py                  # Deterministic business and safety rules
-│       └── tools.py                   # Validated, deterministic local tools
+│   │   ├── solution.py                # Reference implementation
+│   │   └── test_kata.py               # Offline kata contract tests
+├── src/openai_tdd_katas/             # Reusable typed/domain, policy, tool, and orchestration code
 ├── tests/
-│   ├── unit/                          # Fast tests with no model/network calls
-│   ├── contract/                      # Schema, adapter, and tool-call contracts
-│   ├── integration/                   # Local orchestration with fake model events
-│   ├── live/                          # Opt-in API tests; never default CI
-│   └── fixtures/
-│       ├── model-events/              # Recorded/synthetic model response events
-│       ├── tool-results/              # Deterministic tool-result fixtures
-│       └── adversarial-prompts/       # Injection, malformed, and edge-case data
+│   ├── unit/                          # Fast reusable-package tests
+│   ├── studio/                        # Loopback/subprocess Studio regressions
+│   └── fixtures/                      # Synthetic model, tool, and adversarial data
 ├── evals/
-│   ├── datasets/                      # JSONL/YAML examples and expected invariants
-│   ├── graders/                       # Deterministic and rubric-based graders
-│   └── reports/                       # Ignored/generated evaluation artifacts
-├── scripts/
-│   ├── run_kata.py                    # Run a selected kata locally
-│   └── run_evals.py                   # Explicit opt-in evaluation runner
-├── .env.example                       # Variables only; never a real API key
-├── .gitignore
-├── pyproject.toml                     # Dependencies, pytest, lint configuration
-└── LICENSE
+│   ├── datasets/core_cases.jsonl      # Versioned offline evaluation cases
+│   ├── graders/                       # Extension point for reusable graders
+│   └── runner.py                      # Deterministic JSONL loader and invariant grader
+├── scripts/run_tests.py               # Runs all offline suites in isolated interpreters
+├── .gitignore                         # Excludes local runs, working copies, caches, and secrets
+└── LICENSE.txt
 ```
 
 ## Documentation
@@ -171,9 +149,9 @@ The repository documentation describes the boundaries and conventions used by ev
 No network, no API key, no real model. Test pure policy, validation, transformation, and tool implementation.
 
 ```python
-def test_quote_rejects_non_positive_quantity():
-    with pytest.raises(ValueError):
-        get_supplier_quote(sku="workshop-13", quantity=0)
+def test_quote_rejects_non_positive_quantity(self):
+    with self.assertRaises(ValueError):
+        get_supplier_quote({"sku": "workshop-13", "quantity": 0})
 ```
 
 ### 2. Contract/integration tests — use fakes

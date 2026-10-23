@@ -72,3 +72,12 @@ The command expects actual results only when used from code; the CLI reports loa
 ## Future live evaluations
 
 A live path must be a deliberate separate command, require an authorized key, use a fixed small dataset, record cost/latency, set timeouts, and never be the only regression protection. It is intentionally not implemented in this kata.
+
+## Definition of done
+
+- [ ] JSONL cases have stable unique IDs, categories, inputs, and expected invariants.
+- [ ] Deterministic graders cover tool calls, schemas, policy, evidence, safety, clarification, and loop limits.
+- [ ] Reports include per-case pass/fail outcomes and aggregate counts without echoing raw input.
+- [ ] Missing/invalid actual results fail with useful, non-sensitive diagnostics.
+- [ ] The default runner is fully offline; any future live path remains explicit and opt-in.
+- [ ] A regression case and offline test accompany each newly discovered defect.

@@ -36,3 +36,12 @@ python -m unittest discover -s katas/10-multi-agent-delegation -p "test_*.py" -v
 ```
 
 Use `KATA_MODULE=starter` for the incomplete scaffold.
+
+## Definition of done
+
+- [ ] Root creates stable budget and technical task IDs with shared quote/requirement facts.
+- [ ] Results retain task/role correlation and direct facts remain separate from child findings.
+- [ ] Missing, failed, timed-out, or invalid child results become explicit uncertainty.
+- [ ] `max_concurrency` is positive, configured, and exercised in tests.
+- [ ] A root summary never claims readiness when a child did not complete.
+- [ ] All tests run offline with deterministic fake delegates.
